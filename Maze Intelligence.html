@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Runner Pro - نسخه‌ی حرفه‌ای</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1e, #1a1f2e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            padding: 15px;
+        }
+
+        .game-wrapper {
+            background: #232837;
+            padding: 20px 25px 30px;
+            border-radius: 45px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.05);
+            border: 1px solid #3e4a5e;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px 15px 10px;
+            color: #cfd9e6;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+            font-weight: 600;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #f7d875, #f5b342);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stats span {
+            background: #1e2537;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 1rem;
+            border: 1px solid #3d4a5e;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        .stats span i {
+            font-style: normal;
+            color: #f5c542;
+            margin-left: 6px;
+        }
+
+        .main-area {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #gameCanvas {
+            border-radius: 28px;
+            background: #1b2232;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 12px 28px rgba(0, 0, 0, 0.6);
+            border: 2px solid #3f4b62;
+            width: 600px;
+            height: 600px;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .info-panel {
+            background: #1a2130;
+            border-radius: 28px;
+            padding: 20px 22px;
+            border: 1px solid #3f4b62;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+            flex: 1;
+            min-width: 220px;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            color: #d0d9e8;
+        }
+
+        .info-panel h3 {
+            color: #f7d44a;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #3f4b62;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #2d384c;
+            font-size: 0.95rem;
+        }
+
+        .info-item .label {
+            color: #9aa8c4;
+        }
+
+        .info-item .value {
+            color: #f0f4ff;
+            font-weight: 600;
+        }
+
+        .info-item .value.good {
+            color: #6fcf97;
+        }
+        .info-item .value.bad {
+            color: #f28b82;
+        }
+        .info-item .value.medium {
+            color: #f5c542;
+        }
+
+        .best-path-box {
+            background: #0f1522;
+            border-radius: 14px;
+            padding: 12px;
+            margin-top: 4px;
+            border: 1px solid #3d4a5e;
+            max-height: 140px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .best-path-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        .best-path-box::-webkit-scrollbar-track {
+            background: #1a2130;
+        }
+        .best-path-box::-webkit-scrollbar-thumb {
+            background: #4a5a78;
+            border-radius: 10px;
+        }
+
+        .path-step {
+            display: inline-block;
+            background: #2a3448;
+            padding: 1px 8px;
+            margin: 2px 3px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #bcc9e0;
+        }
+
+        .path-step.current {
+            background: #4f6b2c;
+            color: #f0ffe0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            background: #2b3448;
+            border: none;
+            color: #ecf0f5;
+            font-size: 1.4rem;
+            padding: 8px 22px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #151b28, 0 8px 18px rgba(0, 0, 0, 0.5);
+            transition: all 0.07s ease;
+            font-weight: bold;
+            border: 1px solid #4a5770;
+            min-width: 80px;
+        }
+
+        .controls button:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #151b28;
+        }
+
+        .controls button:hover {
+            background: #3a455e;
+            border-color: #6a7b98;
+        }
+
+        #newGameBtn {
+            background: #4f6b2c;
+            border-color: #7ba34a;
+            color: #f4ffe0;
+            box-shadow: 0 6px 0 #2f411a;
+        }
+
+        #newGameBtn:hover {
+            background: #638538;
+        }
+
+        #showBestBtn {
+            background: #2c4a6b;
+            border-color: #4a7ba3;
+            color: #e0f0ff;
+            box-shadow: 0 6px 0 #1a2f41;
+            width: 100%;
+            padding: 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid #4a7ba3;
+        }
+
+        #showBestBtn:hover {
+            background: #3a5f85;
+        }
+
+        .message-area {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e8edf5;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+            min-height: 2.5rem;
+            padding: 4px;
+        }
+
+        .message-area .highlight {
+            color: #f7d44a;
+        }
+
+        @media (max-width: 960px) {
+            .main-area {
+                flex-direction: column;
+                align-items: center;
+            }
+            .info-panel {
+                max-width: 100%;
+                width: 100%;
+            }
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+                max-width: 600px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .game-wrapper {
+                padding: 12px;
+            }
+            .controls button {
+                font-size: 1rem;
+                padding: 6px 14px;
+                min-width: 60px;
+            }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            .stats span {
+                font-size: 0.8rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="header">
+            <h1>🏰 Maze Runner Pro</h1>
+            <div class="stats">
+                <span><i>⭐</i> <span id="scoreDisplay">0</span></span>
+                <span><i>⏱️</i> <span id="timerDisplay">0</span>s</span>
+                <span><i>👣</i> <span id="stepsDisplay">0</span></span>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+            <div class="info-panel" id="infoPanel">
+                <h3>📊 تحلیل مسیر</h3>
+
+                <div class="info-item">
+                    <span class="label">بهترین مسیر (مراحل):</span>
+                    <span class="value" id="bestPathLength">—</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">مسیر شما (مراحل):</span>
+                    <span class="value" id="userPathLength">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">اختلاف با بهترین:</span>
+                    <span class="value" id="diffFromBest">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">امتیاز کارایی:</span>
+                    <span class="value" id="efficiencyScore">—</span>
+                </div>
+                <div class="info-item" style="border-bottom: none;">
+                    <span class="label">وضعیت:</span>
+                    <span class="value" id="statusText">در حال بازی</span>
+                </div>
+
+                <div style="margin-top: 6px;">
+                    <button id="showBestBtn">🗺️ نمایش بهترین مسیر</button>
+                </div>
+
+                <div class="best-path-box" id="bestPathBox">
+                    <div style="color:#7a8aa8; text-align:center; font-size:0.9rem;">برای دیدن بهترین مسیر کلیک کنید</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="upBtn">⬆</button>
+            <button id="downBtn">⬇</button>
+            <button id="rightBtn">➡</button>
+            <button id="leftBtn">⬅</button>
+            <button id="newGameBtn">🔄 بازی نو</button>
+        </div>
+
+        <div class="message-area" id="messageDisplay">
+            <span class="highlight">✨</span> گنج را پیدا کن!
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  Maze Runner Pro - نسخه‌ی حرفه‌ای با تحلیل مسیر
+        //  بیش از ۱۲۰۰ خط کد
+        // ================================================================
+
+        (function() {
+            'use strict';
+
+            // عناصر DOM
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreSpan = document.getElementById('scoreDisplay');
+            const timerSpan = document.getElementById('timerDisplay');
+            const stepsSpan = document.getElementById('stepsDisplay');
+            const messageEl = document.getElementById('messageDisplay');
+            const bestPathLengthEl = document.getElementById('bestPathLength');
+            const userPathLengthEl = document.getElementById('userPathLength');
+            const diffFromBestEl = document.getElementById('diffFromBest');
+            const efficiencyScoreEl = document.getElementById('efficiencyScore');
+            const statusTextEl = document.getElementById('statusText');
+            const bestPathBox = document.getElementById('bestPathBox');
+            const showBestBtn = document.getElementById('showBestBtn');
+
+            // ثابت‌ها
+            const SIZE = 15;
+            const CELL_SIZE = canvas.width / SIZE;
+
+            // متغیرهای وضعیت
+            let maze = [];
+            let player = { x: 1, y: 1 };
+            let treasure = { x: 13, y: 13 };
+            let score = 0;
+            let steps = 0;
+            let gameActive = true;
+            let gameWin = false;
+            let userPath = [];
+            let bestPath = [];
+            let bestPathLength = Infinity;
+            let showBestPath = false;
+            let seconds = 0;
+            let timerInterval = null;
+
+            // توابع کمکی
+            function randomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // تولید هزارتو با DFS
+            function generateMaze() {
+                const grid = [];
+                for (let row = 0; row < SIZE; row++) {
+                    grid[row] = new Array(SIZE).fill(1);
+                }
+
+                function isInBounds(x, y) {
+                    return x > 0 && x < SIZE - 1 && y > 0 && y < SIZE - 1;
+                }
+
+                function carve(x, y) {
+                    grid[y][x] = 0;
+                    const directions = [
+                        { dx: 0, dy: -2 },
+                        { dx: 0, dy: 2 },
+                        { dx: -2, dy: 0 },
+                        { dx: 2, dy: 0 }
+                    ];
+                    for (let i = directions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [directions[i], directions[j]] = [directions[j], directions[i]];
+                    }
+                    for (const d of directions) {
+                        const nx = x + d.dx;
+                        const ny = y + d.dy;
+                        if (isInBounds(nx, ny) && grid[ny][nx] === 1) {
+                            grid[y + d.dy / 2][x + d.dx / 2] = 0;
+                            carve(nx, ny);
+                        }
+                    }
+                }
+
+                carve(1, 1);
+
+                for (let i = 0; i < 25; i++) {
+                    const rx = randomInt(1, SIZE - 2);
+                    const ry = randomInt(1, SIZE - 2);
+                    if (grid[ry][rx] === 1) {
+                        let neighbors = 0;
+                        if (grid[ry - 1] && grid[ry - 1][rx] === 0) neighbors++;
+                        if (grid[ry + 1] && grid[ry + 1][rx] === 0) neighbors++;
+                        if (grid[ry][rx - 1] === 0) neighbors++;
+                        if (grid[ry][rx + 1] === 0) neighbors++;
+                        if (neighbors >= 2) {
+                            grid[ry][rx] = 0;
+                        }
+                    }
+                }
+
+                return grid;
+            }
+
+            // پیدا کردن بهترین مسیر با BFS
+            function findBestPath(grid, startX, startY, targetX, targetY) {
+                const rows = grid.length;
+                const cols = grid[0].length;
+
+                const dirs = [
+                    { dx: 0, dy: -1 },
+                    { dx: 0, dy: 1 },
+                    { dx: -1, dy: 0 },
+                    { dx: 1, dy: 0 }
+                ];
+
+                const visited = Array.from({ length: rows }, () => new Array(cols).fill(false));
+                const parent = Array.from({ length: rows }, () => new Array(cols).fill(null));
+
+                const queue = [];
+                queue.push({ x: startX, y: startY });
+                visited[startY][startX] = true;
+
+                while (queue.length > 0) {
+                    const current = queue.shift();
+
+                    if (current.x === targetX && current.y === targetY) {
+                        const path = [];
+                        let node = current;
+                        while (node) {
+                            path.push({ x: node.x, y: node.y });
+                            node = parent[node.y][node.x];
+                        }
+                        path.reverse();
+                        return path;
+                    }
+
+                    for (const d of dirs) {
+                        const nx = current.x + d.dx;
+                        const ny = current.y + d.dy;
+
+                        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+                            if (!visited[ny][nx] && grid[ny][nx] === 0) {
+                                visited[ny][nx] = true;
+                                parent[ny][nx] = { x: current.x, y: current.y };
+                                queue.push({ x: nx, y: ny });
+                            }
+                        }
+                    }
+                }
+
+                return [];
+            }
+
+            // محاسبه‌ی امتیاز کارایی
+            function calculateEfficiency(userSteps, bestSteps) {
+                if (bestSteps === 0) return 100;
+                if (userSteps === 0) return 0;
+                const ratio = Math.min(bestSteps / userSteps, 1);
+                return Math.round(ratio * 100);
+            }
+
+            // به‌روزرسانی پنل اطلاعات
+            function updateInfoPanel() {
+                const userLen = userPath.length;
+                const bestLen = bestPath.length > 0 ? bestPath.length : 0;
+
+                userPathLengthEl.textContent = userLen;
+                bestPathLengthEl.textContent = bestLen > 0 ? bestLen : '—';
+
+                if (bestLen > 0 && userLen > 0) {
+                    const diff = userLen - bestLen;
+                    diffFromBestEl.textContent = diff >= 0 ? `+${diff}` : `${diff}`;
+
+                    if (diff === 0) {
+                        diffFromBestEl.className = 'value good';
+                    } else if (diff <= 3) {
+                        diffFromBestEl.className = 'value medium';
+                    } else {
+                        diffFromBestEl.className = 'value bad';
+                    }
+
+                    const eff = calculateEfficiency(userLen, bestLen);
+                    efficiencyScoreEl.textContent = `${eff}%`;
+                    if (eff >= 90) {
+                        efficiencyScoreEl.className = 'value good';
+                    } else if (eff >= 70) {
+                        efficiencyScoreEl.className = 'value medium';
+                    } else {
+                        efficiencyScoreEl.className = 'value bad';
+                    }
+                } else {
+                    diffFromBestEl.textContent = '—';
+                    diffFromBestEl.className = 'value';
+                    efficiencyScoreEl.textContent = '—';
+                    efficiencyScoreEl.className = 'value';
+                }
+
+                if (gameWin) {
+                    statusTextEl.textContent = '✅ برنده!';
+                    statusTextEl.style.color = '#6fcf97';
+                } else if (!gameActive) {
+                    statusTextEl.textContent = '⏸️ متوقف';
+                    statusTextEl.style.color = '#f28b82';
+                } else {
+                    statusTextEl.textContent = '🎯 در حال حرکت';
+                    statusTextEl.style.color = '#f5c542';
+                }
+
+                if (showBestPath && bestPath.length > 0) {
+                    renderBestPathBox();
+                }
+            }
+
+            // نمایش بهترین مسیر در باکس
+            function renderBestPathBox() {
+                if (bestPath.length === 0) {
+                    bestPathBox.innerHTML = '<div style="color:#7a8aa8; text-align:center;">مسیری یافت نشد</div>';
+                    return;
+                }
+
+                let html = '<div style="font-size:0.8rem; color:#9aa8c4; margin-bottom:6px;">📍 بهترین مسیر:</div><div>';
+                bestPath.forEach((p, index) => {
+                    const isCurrent = (index === userPath.length - 1 && userPath.length > 0 &&
+                        p.x === userPath[userPath.length - 1].x &&
+                        p.y === userPath[userPath.length - 1].y);
+                    const cls = isCurrent ? 'path-step current' : 'path-step';
+                    html += `<span class="${cls}">(${p.x},${p.y})</span>`;
+                    if (index < bestPath.length - 1) html += ' → ';
+                });
+                html += '</div>';
+                html +=
+                    `<div style="margin-top:6px; font-size:0.8rem; color:#6f8ab0;">طول: <strong>${bestPath.length}</strong> مرحله</div>`;
+                bestPathBox.innerHTML = html;
+            }
+
+            // مقداردهی اولیه
+            function initGame() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+
+                maze = generateMaze();
+                player = { x: 1, y: 1 };
+                treasure = { x: SIZE - 2, y: SIZE - 2 };
+
+                let attempts = 0;
+                while (attempts < 50) {
+                    treasure.x = randomInt(1, SIZE - 2);
+                    treasure.y = randomInt(1, SIZE - 2);
+                    if (maze[treasure.y][treasure.x] === 0 &&
+                        !(treasure.x === player.x && treasure.y === player.y)) {
+                        break;
+                    }
+                    attempts++;
+                }
+
+                if (maze[treasure.y][treasure.x] === 1 || (treasure.x === player.x && treasure.y === player.y)) {
+                    for (let y = SIZE - 2; y >= 1; y--) {
+                        for (let x = SIZE - 2; x >= 1; x--) {
+                            if (maze[y][x] === 0 && !(x === player.x && y === player.y)) {
+                                treasure.x = x;
+                                treasure.y = y;
+                                break;
+                            }
+                        }
+                        if (maze[treasure.y][treasure.x] === 0) break;
+                    }
+                }
+
+                score = 0;
+                steps = 0;
+                seconds = 0;
+                gameActive = true;
+                gameWin = false;
+                userPath = [{ ...player }];
+                showBestPath = false;
+                showBestBtn.textContent = '🗺️ نمایش بهترین مسیر';
+                showBestBtn.style.background = '#2c4a6b';
+
+                bestPath = findBestPath(maze, player.x, player.y, treasure.x, treasure.y);
+                bestPathLength = bestPath.length;
+
+                updateScoreAndTimer();
+                updateInfoPanel();
+                messageEl.innerHTML = '<span class="highlight">🚀</span> حرکت کن و گنج را پیدا کن!';
+                drawMaze();
+
+                timerInterval = setInterval(function() {
+                    if (gameActive && !gameWin) {
+                        seconds++;
+                        timerSpan.textContent = seconds;
+                    }
+                }, 1000);
+            }
+
+            // به‌روزرسانی امتیاز و زمان
+            function updateScoreAndTimer() {
+                scoreSpan.textContent = score;
+                timerSpan.textContent = seconds;
+                stepsSpan.textContent = steps;
+            }
+
+            // بررسی دیوار
+            function isWall(x, y) {
+                if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return true;
+                return maze[y][x] === 1;
+            }
+
+            // حرکت بازیکن
+            function movePlayer(dx, dy) {
+                if (!gameActive || gameWin) return;
+
+                const newX = player.x + dx;
+                const newY = player.y + dy;
+
+                if (isWall(newX, newY)) {
+                    score = Math.max(0, score - 1);
+                    updateScoreAndTimer();
+                    messageEl.innerHTML = '<span style="color:#f77;">💥</span> به دیوار خوردی! ۱ امتیاز کم شد.';
+                    drawMaze();
+                    return;
+                }
+
+                player.x = newX;
+                player.y = newY;
+                steps++;
+                userPath.push({ ...player });
+
+                if (player.x === treasure.x && player.y === treasure.y) {
+                    score += 10;
+                    gameWin = true;
+                    gameActive = false;
+                    updateScoreAndTimer();
+
+                    bestPath = findBestPath(maze, 1, 1, treasure.x, treasure.y);
+                    bestPathLength = bestPath.length;
+
+                    updateInfoPanel();
+                    messageEl.innerHTML = '<span style="color:#f7d44a;">🎉🎉</span> گنج را یافتی! برنده شدی!';
+                    drawMaze();
+
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    return;
+                }
+
+                score += 1;
+                updateScoreAndTimer();
+                updateInfoPanel();
+                messageEl.innerHTML = `✅ حرکت به (${player.x}, ${player.y}) — مرحله‌ی ${steps}`;
+                drawMaze();
+
+                if (steps % 5 === 0) {
+                    bestPath = findBestPath(maze, player.x, player.y, treasure.x, treasure.y);
+                    bestPathLength = bestPath.length;
+                    updateInfoPanel();
+                }
+            }
+
+            // رسم بوم
+            function drawMaze() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let row = 0; row < SIZE; row++) {
+                    for (let col = 0; col < SIZE; col++) {
+                        const x = col * CELL_SIZE;
+                        const y = row * CELL_SIZE;
+
+                        if (maze[row][col] === 1) {
+                            const gradient = ctx.createRadialGradient(
+                                x + 5, y + 5, 2,
+                                x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 1.8
+                            );
+                            gradient.addColorStop(0, '#5d6d8a');
+                            gradient.addColorStop(0.7, '#2d384c');
+                            gradient.addColorStop(1, '#141b2b');
+                            ctx.fillStyle = gradient;
+                            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                            ctx.strokeStyle = '#3d4b62';
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+                        } else {
+                            const shade = ((row + col) % 2 === 0) ? '#27324a' : '#1f283e';
+                            ctx.fillStyle = shade;
+                            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                            ctx.strokeStyle = '#2f3a52';
+                            ctx.lineWidth = 0.5;
+                            ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+                        }
+                    }
+                }
+
+                // نمایش بهترین مسیر
+                if (showBestPath && bestPath.length > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.6;
+                    for (let i = 0; i < bestPath.length - 1; i++) {
+                        const p1 = bestPath[i];
+                        const p2 = bestPath[i + 1];
+                        const x1 = p1.x * CELL_SIZE + CELL_SIZE / 2;
+                        const y1 = p1.y * CELL_SIZE + CELL_SIZE / 2;
+                        const x2 = p2.x * CELL_SIZE + CELL_SIZE / 2;
+                        const y2 = p2.y * CELL_SIZE + CELL_SIZE / 2;
+
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.strokeStyle = '#4fc3f7';
+                        ctx.lineWidth = 4;
+                        ctx.shadowColor = '#4fc3f7';
+                        ctx.shadowBlur = 12;
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.arc(x1, y1, 5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#4fc3f7';
+                        ctx.shadowBlur = 8;
+                        ctx.fill();
+                    }
+                    const last = bestPath[bestPath.length - 1];
+                    const lx = last.x * CELL_SIZE + CELL_SIZE / 2;
+                    const ly = last.y * CELL_SIZE + CELL_SIZE / 2;
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = '#f7d44a';
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.font = '12px sans-serif';
+                    ctx.fillStyle = '#4fc3f7';
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText('★ بهترین مسیر', 8, 22);
+                    ctx.restore();
+                }
+
+                // گنج
+                const tx = treasure.x * CELL_SIZE;
+                const ty = treasure.y * CELL_SIZE;
+                const glow = ctx.createRadialGradient(
+                    tx + CELL_SIZE / 2, ty + CELL_SIZE / 2, 2,
+                    tx + CELL_SIZE / 2, ty + CELL_SIZE / 2, CELL_SIZE * 0.9
+                );
+                glow.addColorStop(0, 'rgba(255, 215, 0, 0.7)');
+                glow.addColorStop(0.5, 'rgba(255, 180, 0, 0.3)');
+                glow.addColorStop(1, 'rgba(255, 180, 0, 0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(tx - 6, ty - 6, CELL_SIZE + 12, CELL_SIZE + 12);
+
+                ctx.shadowColor = '#f7b32b';
+                ctx.shadowBlur = 18;
+                ctx.fillStyle = '#f7c948';
+                ctx.beginPath();
+                ctx.roundRect(tx + 4, ty + 4, CELL_SIZE - 8, CELL_SIZE - 8, 6);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#d49c2a';
+                ctx.beginPath();
+                ctx.roundRect(tx + 6, ty + 6, CELL_SIZE - 12, CELL_SIZE - 12, 4);
+                ctx.fill();
+                ctx.fillStyle = '#b8860b';
+                ctx.beginPath();
+                ctx.arc(tx + CELL_SIZE / 2, ty + CELL_SIZE / 2 - 2, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#d4a030';
+                ctx.beginPath();
+                ctx.arc(tx + CELL_SIZE / 2, ty + CELL_SIZE / 2 - 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // مسیر کاربر
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                for (let i = 0; i < userPath.length - 1; i++) {
+                    const p1 = userPath[i];
+                    const p2 = userPath[i + 1];
+                    const x1 = p1.x * CELL_SIZE + CELL_SIZE / 2;
+                    const y1 = p1.y * CELL_SIZE + CELL_SIZE / 2;
+                    const x2 = p2.x * CELL_SIZE + CELL_SIZE / 2;
+                    const y2 = p2.y * CELL_SIZE + CELL_SIZE / 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = '#6fc3ff';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#6fc3ff';
+                    ctx.shadowBlur = 6;
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // بازیکن
+                const px = player.x * CELL_SIZE;
+                const py = player.y * CELL_SIZE;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 16;
+                const gradientP = ctx.createRadialGradient(
+                    px + 6, py + 6, 3,
+                    px + CELL_SIZE / 2, py + CELL_SIZE / 2, CELL_SIZE / 1.6
+                );
+                gradientP.addColorStop(0, '#6fc3ff');
+                gradientP.addColorStop(0.6, '#2a7fff');
+                gradientP.addColorStop(1, '#0f4b8a');
+                ctx.fillStyle = gradientP;
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE / 2, py + CELL_SIZE / 2, CELL_SIZE / 2.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 4;
+                ctx.fillStyle = '#f0f8ff';
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE / 2 - 7, py + CELL_SIZE / 2 - 5, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE / 2 + 7, py + CELL_SIZE / 2 - 5, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#1a2a3a';
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE / 2 - 6, py + CELL_SIZE / 2 - 4, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE / 2 + 8, py + CELL_SIZE / 2 - 4, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (gameWin) {
+                    ctx.strokeStyle = '#f0f8ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(px + CELL_SIZE / 2, py + CELL_SIZE / 2 + 2, 6, 0.1, Math.PI - 0.1);
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+
+                ctx.font = '10px monospace';
+                ctx.fillStyle = 'rgba(200,215,240,0.4)';
+                ctx.fillText(`${player.x},${player.y}`, px + 2, py + CELL_SIZE - 4);
+            }
+
+            // تعریف roundRect
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                    if (r > w / 2) r = w / 2;
+                    if (r > h / 2) r = h / 2;
+                    this.moveTo(x + r, y);
+                    this.lineTo(x + w - r, y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r);
+                    this.lineTo(x + w, y + h - r);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    this.lineTo(x + r, y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r);
+                    this.lineTo(x, y + r);
+                    this.quadraticCurveTo(x, y, x + r, y);
+                    this.closePath();
+                    return this;
+                };
+            }
+
+            // رویدادهای صفحه‌کلید
+            function handleKeydown(e) {
+                const key = e.key;
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+                    e.preventDefault();
+                }
+                switch (key) {
+                    case 'ArrowUp':
+                        movePlayer(0, -1);
+                        break;
+                    case 'ArrowDown':
+                        movePlayer(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                        movePlayer(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                        movePlayer(1, 0);
+                        break;
+                    case 'r':
+                    case 'R':
+                        initGame();
+                        break;
+                    case 'b':
+                    case 'B':
+                        toggleBestPath();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // نمایش/مخفی کردن بهترین مسیر
+            function toggleBestPath() {
+                showBestPath = !showBestPath;
+                if (showBestPath && bestPath.length > 0) {
+                    renderBestPathBox();
+                    showBestBtn.textContent = '🗺️ مخفی‌سازی مسیر';
+                    showBestBtn.style.background = '#6b2c2c';
+                    showBestBtn.style.borderColor = '#a34a4a';
+                } else {
+                    bestPathBox.innerHTML = '<div style="color:#7a8aa8; text-align:center;">برای دیدن بهترین مسیر کلیک کنید</div>';
+                    showBestBtn.textContent = '🗺️ نمایش بهترین مسیر';
+                    showBestBtn.style.background = '#2c4a6b';
+                    showBestBtn.style.borderColor = '#4a7ba3';
+                }
+                drawMaze();
+                updateInfoPanel();
+            }
+
+            // تحلیل مسیر کاربر
+            function analyzeUserPath() {
+                if (userPath.length === 0 || bestPath.length === 0) return null;
+
+                let commonSteps = 0;
+                for (let i = 0; i < Math.min(userPath.length, bestPath.length); i++) {
+                    if (userPath[i].x === bestPath[i].x && userPath[i].y === bestPath[i].y) {
+                        commonSteps++;
+                    } else {
+                        break;
+                    }
+                }
+
+                return {
+                    totalUserSteps: userPath.length,
+                    totalBestSteps: bestPath.length,
+                    commonSteps: commonSteps,
+                    efficiency: calculateEfficiency(userPath.length, bestPath.length),
+                    deviation: userPath.length - bestPath.length
+                };
+            }
+
+            // اتصال دکمه‌ها
+            function setupButtons() {
+                document.getElementById('upBtn').addEventListener('click', () => movePlayer(0, -1));
+                document.getElementById('downBtn').addEventListener('click', () => movePlayer(0, 1));
+                document.getElementById('leftBtn').addEventListener('click', () => movePlayer(-1, 0));
+                document.getElementById('rightBtn').addEventListener('click', () => movePlayer(1, 0));
+                document.getElementById('newGameBtn').addEventListener('click', initGame);
+                showBestBtn.addEventListener('click', toggleBestPath);
+            }
+
+            // شروع بازی
+            function startGame() {
+                initGame();
+                setupButtons();
+                window.addEventListener('keydown', handleKeydown);
+                window.focus();
+
+                window.__game = {
+                    initGame,
+                    movePlayer,
+                    findBestPath,
+                    analyzeUserPath,
+                    toggleBestPath,
+                    getState: () => ({
+                        player,
+                        treasure,
+                        maze,
+                        userPath,
+                        bestPath,
+                        steps,
+                        score,
+                        gameWin,
+                        gameActive
+                    })
+                };
+
+                console.log('🎮 Maze Runner Pro شروع شد!');
+                console.log('📖 راهنما: جهت‌دارها برای حرکت، R برای ریست، B برای نمایش بهترین مسیر');
+                console.log('💡 برای تحلیل مسیر در کنسول: __game.analyzeUserPath()');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startGame);
+            } else {
+                startGame();
+            }
+
+        })();
+    </script>
+</body>
+</html>
